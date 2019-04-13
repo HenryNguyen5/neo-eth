@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import { ResponsiveNeoGraph } from "../components/NeoGraph";
 
-const NEO4J_URI = "bolt://localhost:7687";
-const NEO4J_USER = "neo4j";
+const NEO4J_USER = process.env.REACT_APP_NEO4J_USER!;
+const NEO4J_URI = process.env.REACT_APP_NEO4J_URL!;
+const NEO4J_PASSWORD = process.env.REACT_APP_NEO4J_PASS!;
 
 export class App extends Component {
   render() {

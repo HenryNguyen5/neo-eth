@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import useResizeAware from "react-resize-aware";
 const NeoVis = require("neovis.js");
-console.log(NeoVis);
+
 interface ResponsiveProps {
   containerId: string;
   neo4jUri: string;
