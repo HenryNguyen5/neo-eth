@@ -150,13 +150,37 @@ async function deleteTransactions() {
     DETACH DELETE address`);
 }
 
+async function pagerank() {
+  const session = getSession();
+  const q = `CALL algo.pageRank.stream('Address', 'Transaction', {iterations:20, dampingFactor:0.85})
+YIELD nodeId, score
+WITH algo.asNode(nodeId) AS a, score
+ORDER BY score DESC
+MERGE (b: Address{address: a.address})
+ON MATCH SET b.score = score`;
+  console.log("running pagerank...");
+  await session.run(q);
+  console.log("done");
+}
+
+async function seedDb() {
+  const session = getSession();
+  await session.run(`CREATE INDEX ON :Address(address)`);
+  await deleteTransactions();
+  await getBlocksAndExec(7_490_652, 7_497_852, insertEthTransactionsFrom);
+}
+
+async function computeCommunities() {
+  const session = getSession();
+  const q = `CALL algo.scc('Address','Transaction', {write:true,partitionProperty:'community'})
+YIELD loadMillis, computeMillis, writeMillis, setCount, maxSetSize, minSetSize
+RETURN maxSetSize, minSetSize;`;
+  await session.run(q);
+}
 async function main() {
   const driver = getDbDriver();
   session = driver.session();
-  await session.run(`CREATE INDEX ON :Address(address)`);
-  await deleteTransactions();
-
-  await getBlocksAndExec(7_490_652, 7_497_852, insertEthTransactionsFrom);
+  await pagerank();
 
   //   console.log(delRes.records);
   //   res.forEach(r => r && console.log(r.records));

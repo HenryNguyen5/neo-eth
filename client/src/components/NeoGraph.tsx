@@ -29,7 +29,7 @@ export function ResponsiveNeoGraph(props: ResponsiveProps) {
 }
 
 ResponsiveNeoGraph.defaultProps = {
-  backgroundColor: "#d3d3d3"
+  backgroundColor: "#FFFFFF"
 };
 
 interface Props {
@@ -41,6 +41,25 @@ interface Props {
   neo4jPassword: string;
   backgroundColor?: string;
 }
+
+const cipher1 = `
+MATCH q=(a:Address)-[:Transaction]->(:Address)
+RETURN q
+ORDER BY a.score DESC
+LIMIT 500`;
+
+const cipher3 = `
+MATCH (a:Address )-[t:Transaction]->( :Address)
+WITH a, count(t) as txCount 
+WHERE txCount > 100 AND txCount < 200
+RETURN a
+LIMIT 5;`;
+
+const cipher4 = `
+MATCH q=(:Address {address: "0x707C6F7d35798780CEFCE81B747392198566a186"})-[:Transaction*]-(:Address)
+RETURN q
+LIMIT 500
+`;
 
 export class NeoGraph extends Component<Props> {
   visRef: React.RefObject<HTMLDivElement>;
@@ -66,20 +85,21 @@ export class NeoGraph extends Component<Props> {
       server_password: neo4jPassword,
       labels: {
         Address: {
-          community: "address",
-          size: "score"
+          caption: "score",
+          size: "score",
+          //  sizeCypher: `MATCH (a:Address) WHERE a.address="0x707C6F7d35798780CEFCE81B747392198566a186" RETURN 100`,
+
+          community: "community"
         }
       },
       relationships: {
-        Transaction: {}
+        Transaction: {
+          caption: "valueEther",
+          thickness: "value"
+        }
       },
-      initial_cypher: `
-      CALL algo.pageRank.stream('Address', 'Transaction', {iterations:20, dampingFactor:0.85})
-      YIELD nodeId, score
-      RETURN algo.asNode(nodeId) AS Address,score
-      ORDER BY score DESC
-      LIMIT 5;`,
-      arrows: true
+      arrows: true,
+      initial_cypher: cipher4
     };
 
     this.vis = new NeoVis.default(config);
